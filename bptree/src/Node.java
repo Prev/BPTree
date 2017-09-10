@@ -1,5 +1,6 @@
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  * Created by Prev on 2017. 9. 6..
@@ -9,16 +10,16 @@ import java.util.ArrayList;
 abstract class Node implements Serializable {
     static final long serialVersionUID = 1L;
 
-    private Node parent;
+    private NonLeafNode parent;
 
-    Node(Node parent) {
+    Node(NonLeafNode parent) {
         this.parent = parent;
     }
 
-    public Node getParent() {
+    public NonLeafNode getParent() {
         return this.parent;
     }
-    public void setParent(Node node) {
+    public void setParent(NonLeafNode node) {
         this.parent = node;
     }
 
@@ -26,6 +27,27 @@ abstract class Node implements Serializable {
     abstract public int getKeyCounts();
 
     //abstract public ArrayList<Pair<Integer, Object>> p();
+
+    public ArrayList<Node> getSiblings() {
+        if (this.parent == null)
+            return new ArrayList<>();
+        else
+            return this.parent.getChildren();
+    }
+
+    public Pair<Node, Node> getNeighbors() {
+        Pair<Node, Node> ret = new Pair<>(null, null);
+        ArrayList<Node> siblings = this.getSiblings();
+
+        int index = siblings.indexOf(this);
+
+        if (index > 0)
+            ret.left = siblings.get(index - 1);
+        if (index < siblings.size() - 1)
+            ret.right = siblings.get(index + 1);
+
+        return ret;
+    }
 }
 
 
@@ -33,7 +55,7 @@ class NonLeafNode extends Node {
     ArrayList<Pair<Integer, Node>> p;
     Node r;
 
-    NonLeafNode(Node parent) {
+    NonLeafNode(NonLeafNode parent) {
         super(parent);
         this.r = null;
         this.p = new ArrayList<>();
@@ -52,6 +74,18 @@ class NonLeafNode extends Node {
         return p.size();
     }
 
+    public ArrayList<Node> getChildren() {
+        ArrayList<Node> ret = new ArrayList<>();
+
+        for (Pair<Integer, Node> pair: this.p)
+            ret.add(pair.right);
+
+        if (this.r != null)
+            ret.add(this.r);
+
+        return ret;
+    }
+
     public int getChildrenCounts() {
         int ret = this.getKeyCounts();
         if (this.r != null)
@@ -59,9 +93,13 @@ class NonLeafNode extends Node {
         return ret;
     }
 
+    public void insert(Pair<Integer, Node> pair) {
+        this.p.add(pair);
+        this.p.sort(Comparator.comparingInt(o -> o.left));
+    }
+
     public void insert(int key, Node node) {
-        this.p.add(new Pair<>(key, node));
-        this.p.sort((o1, o2) -> o1.left - o2.left);
+        this.insert(new Pair<>(key, node));
     }
 }
 
@@ -71,7 +109,7 @@ class LeafNode extends Node {
     LeafNode l;
     LeafNode r;
 
-    LeafNode(Node parent) {
+    LeafNode(NonLeafNode parent) {
         super(parent);
         this.r = null;
         this.l = null;
@@ -91,9 +129,13 @@ class LeafNode extends Node {
         return p.size();
     }
 
+    public void insert(Pair<Integer, Integer> pair) {
+        this.p.add(pair);
+        this.p.sort(Comparator.comparingInt(o -> o.left));
+    }
+
     public void insert(int key, int value) {
-        this.p.add(new Pair<>(key, value));
-        this.p.sort((o1, o2) -> o1.left - o2.left);
+        this.insert(new Pair<>(key, value));
     }
 }
 

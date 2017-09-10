@@ -14,9 +14,10 @@ public class bptreeTest {
     static final String TEST_INSERT_FILE2 = "tests/datafiles/insert2.csv";
     static final String TEST_INSERT_FILE0 = "tests/datafiles/insert0.csv";
     static final String TEST_DELETE_FILE = "tests/datafiles/delete.csv";
+    static final String TEST_DELETE_FILE0 = "tests/datafiles/delete0.csv";
 
 
-    void guaranteeBPlusTree(BPlusTree tree) {
+    private void guaranteeBPlusTree(BPlusTree tree) {
         Queue<Node> que = new LinkedList<>();
         que.offer(tree.rootNode);
 
@@ -32,6 +33,7 @@ public class bptreeTest {
                 else if (node instanceof LeafNode)
                     assertTrue(node.getKeyCounts() <= b-1);
 
+
             } else if (node instanceof NonLeafNode) {
                 int childrenCounts = ((NonLeafNode) node).getChildrenCounts();
 
@@ -41,9 +43,13 @@ public class bptreeTest {
             } else if (node instanceof LeafNode) {
                 assertTrue(node.getKeyCounts() >= (b-1) / 2);
                 assertTrue(node.getKeyCounts() <= b-1);
-
             }
 
+
+            if (node instanceof NonLeafNode) {
+                for (Pair<Integer, Node> p : ((NonLeafNode) node).p)
+                    que.offer(p.right);
+            }
         }
     }
 
@@ -100,7 +106,7 @@ public class bptreeTest {
 
     @Test
     public void testInsertion3() {
-        bptree.create(TEST_INDEX_FILE, 2);
+        bptree.create(TEST_INDEX_FILE, 3);
         bptree.insert(TEST_INDEX_FILE, TEST_INSERT_FILE2);
 
         BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
@@ -117,6 +123,24 @@ public class bptreeTest {
     }
 
 
+    @Test
+    public void testInsertion4() {
+        bptree.create(TEST_INDEX_FILE, 3);
+        bptree.insert(TEST_INDEX_FILE, TEST_INSERT_FILE0);
+
+        BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
+
+        tree.traversal();
+
+        assertTrue(tree.search(10).hit);
+        assertTrue(tree.search(86).hit);
+        assertTrue(tree.search(20).hit);
+        assertTrue(tree.search(37).hit);
+        assertTrue(tree.search(87).hit);
+
+        guaranteeBPlusTree(tree);
+    }
+
 
     @Test
     public void testDeletion() {
@@ -128,13 +152,34 @@ public class bptreeTest {
 
         tree.traversal();
 
-        //assertEquals(tree.rootNode.getKeyCounts(), 3);
-
-        assertTrue(tree.search(1).hit);
+        assertFalse(tree.search(1).hit);
         assertFalse(tree.search(2).hit);
         assertTrue(tree.search(3).hit);
         assertTrue(tree.search(4).hit);
         assertFalse(tree.search(5).hit);
+
+        guaranteeBPlusTree(tree);
+    }
+
+    @Test
+    public void testDeletion2() {
+        bptree.create(TEST_INDEX_FILE, 3);
+        bptree.insert(TEST_INDEX_FILE, TEST_INSERT_FILE0);
+        bptree.delete(TEST_INDEX_FILE, TEST_DELETE_FILE0);
+
+        BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
+
+        tree.traversal();
+
+        assertTrue(!tree.search(26).hit);
+        assertTrue(tree.search(10).hit);
+        assertTrue(!tree.search(87).hit);
+        assertTrue(tree.search(86).hit);
+        assertTrue(tree.search(20).hit);
+        assertTrue(!tree.search(84).hit);
+        assertTrue(!tree.search(37).hit);
+
+        guaranteeBPlusTree(tree);
     }
 
 
@@ -146,7 +191,7 @@ public class bptreeTest {
         BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
 
         for (int i = 1; i <= 5; i++)
-            assertEquals(tree.search(i).value, i);
+            assertEquals(i, tree.search(i).value);
     }
 
     @Test
@@ -157,6 +202,9 @@ public class bptreeTest {
         //BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
 
         bptree.search(TEST_INDEX_FILE, 68);
+
+        BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
+        assertEquals(97321, tree.search(68).value);
     }
 
     @Test
