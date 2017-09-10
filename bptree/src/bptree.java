@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 /**
  * Created by Prev on 2017. 9. 4..
  */
@@ -77,7 +79,7 @@ public class bptree {
             case "-r" :
                 // -r <index_file> <start_key> <end_key>
                 CLIUtil.guaranteeArgs(args, 4);
-                rangeSearch(
+                rangedSearch(
                         args[1],
                         Integer.parseInt(args[2]),
                         Integer.parseInt(args[3])
@@ -89,12 +91,12 @@ public class bptree {
                 // -s <index_file>
                 CLIUtil.guaranteeArgs(args, 3);
 
-                System.out.println("list");
-                tree = DataFileUtil.loadTree(args[1]);
-
-                for (Pair<Integer, Node> p: tree.rootNode.p) {
-                    System.out.println(p.left + ": " + p.right);
-                }
+//                System.out.println("list");
+//                tree = DataFileUtil.loadTree(args[1]);
+//
+//                for (Pair<Integer, Node> p: tree.rootNode.p) {
+//                    System.out.println(p.left + ": " + p.right);
+//                }
                 break;
 
             default:
@@ -109,7 +111,7 @@ public class bptree {
      * @param b
      */
     static void create(String indexFileName, int b) {
-        System.out.println("create");
+        //System.out.println("create");
 
         BPlusTree tree = new BPlusTree(b);
         DataFileUtil.saveTree(indexFileName, tree);
@@ -122,20 +124,18 @@ public class bptree {
      * @param dataFileName
      */
     static void insert(String indexFileName, String dataFileName) {
-        System.out.println("insert");
+        //System.out.println("insert");
 
         BPlusTree tree = DataFileUtil.loadTree(indexFileName);
-        System.out.println(tree.maxChildNodes);
-
         int[][] data = DataFileUtil.loadIntCSV(dataFileName);
-        for(int[] a: data) {
-            for (int x: a)
-                System.out.print(x + " ");
+        int insertedRows = 0;
 
-            tree.insert(a[0], a[1]);
-            System.out.println("");
+        for(int[] row: data) {
+            if (tree.insert(row[0], row[1]))
+                insertedRows++;
         }
 
+        System.out.printf("%d lines are inserted\n", insertedRows);
         DataFileUtil.saveTree(indexFileName, tree);
     }
 
@@ -145,9 +145,18 @@ public class bptree {
      * @param dataFileName
      */
     static void delete(String indexFileName, String dataFileName) {
-        System.out.println("delete");
+        BPlusTree tree = DataFileUtil.loadTree(indexFileName);
+        int[][] data = DataFileUtil.loadIntCSV(dataFileName);
 
+        int deletedRows = 0;
 
+        for(int[] row: data) {
+            if (tree.remove(row[0]))
+            deletedRows++;
+        }
+
+        System.out.printf("%d keys are deleted\n", deletedRows);
+        DataFileUtil.saveTree(indexFileName, tree);
     }
 
     /**
@@ -156,7 +165,41 @@ public class bptree {
      * @param key
      */
     static void search(String indexFileName, int key) {
-        System.out.println("search");
+        //System.out.println("search");
+
+        BPlusTree tree = DataFileUtil.loadTree(indexFileName);
+
+        //int value = tree.searchValue(key);
+        //System.out.println("Result: " + value);
+
+        ArrayList<Node> ret = tree.search(key).history;
+        for (Node node: ret) {
+            if (node == null) {
+                System.out.println("NOT FOUND");
+                return;
+
+            }else if (node instanceof LeafNode) {
+                for (Pair<Integer, Integer> p: ((LeafNode) node).p) {
+                    if (p.left == key) {
+                        System.out.println(p.right);
+                        return;
+                    }
+                }
+                System.out.println("NOT FOUND");
+
+
+            }else {
+                StringBuilder msg = new StringBuilder();
+                int[] keys = node.getKeys();
+                for (int i = 0; i < keys.length; i++) {
+                    msg.append(keys[i]);
+                    if (i != keys.length - 1)
+                        msg.append(',');
+                }
+                System.out.println(msg.toString());
+
+            }
+        }
     }
 
     /**
@@ -165,7 +208,7 @@ public class bptree {
      * @param startKey
      * @param endKey
      */
-    static void rangeSearch(String indexFileName, int startKey, int endKey) {
-        System.out.println("range search");
+    static void rangedSearch(String indexFileName, int startKey, int endKey) {
+        System.out.println("ranged search");
     }
 }
