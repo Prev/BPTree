@@ -6,8 +6,13 @@ import java.util.Queue;
 
 import static org.junit.Assert.*;
 
+/**
+ * B+ Tree Tests
+ *
+ * @author Prev (0soo.2@prev.kr)
+ */
 
-public class bptreeTest {
+public class BPlusTreeTest {
 
     static final String TEST_INDEX_FILE = "tests/datafiles/_index.dat";
     static final String TEST_INSERT_FILE = "tests/datafiles/insert.csv";
@@ -17,6 +22,10 @@ public class bptreeTest {
     static final String TEST_DELETE_FILE0 = "tests/datafiles/delete0.csv";
 
 
+    /**
+     * Check tree is satisfying the properties of B+ Tree
+     * @param tree
+     */
     private void guaranteeBPlusTree(BPlusTree tree) {
         Queue<Node> que = new LinkedList<>();
         que.offer(tree.rootNode);
@@ -53,11 +62,12 @@ public class bptreeTest {
         }
     }
 
+
     @Test
     public void testCreation() {
         int maxChildNodes = 10;
 
-        bptree.create(TEST_INDEX_FILE, maxChildNodes);
+        BPlusTreeCLI.create(TEST_INDEX_FILE, maxChildNodes);
         BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
 
         assertEquals(tree.getMaxChildNodes(), maxChildNodes);
@@ -66,8 +76,8 @@ public class bptreeTest {
 
     @Test
     public void testInsertion() {
-        bptree.create(TEST_INDEX_FILE, 4);
-        bptree.insert(TEST_INDEX_FILE, TEST_INSERT_FILE);
+        BPlusTreeCLI.create(TEST_INDEX_FILE, 4);
+        BPlusTreeCLI.insert(TEST_INDEX_FILE, TEST_INSERT_FILE);
 
         BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
 
@@ -86,8 +96,8 @@ public class bptreeTest {
 
     @Test
     public void testInsertion2() {
-        bptree.create(TEST_INDEX_FILE, 3);
-        bptree.insert(TEST_INDEX_FILE, TEST_INSERT_FILE);
+        BPlusTreeCLI.create(TEST_INDEX_FILE, 3);
+        BPlusTreeCLI.insert(TEST_INDEX_FILE, TEST_INSERT_FILE);
 
         BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
 
@@ -106,8 +116,8 @@ public class bptreeTest {
 
     @Test
     public void testInsertion3() {
-        bptree.create(TEST_INDEX_FILE, 3);
-        bptree.insert(TEST_INDEX_FILE, TEST_INSERT_FILE2);
+        BPlusTreeCLI.create(TEST_INDEX_FILE, 3);
+        BPlusTreeCLI.insert(TEST_INDEX_FILE, TEST_INSERT_FILE2);
 
         BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
 
@@ -125,8 +135,8 @@ public class bptreeTest {
 
     @Test
     public void testInsertion4() {
-        bptree.create(TEST_INDEX_FILE, 3);
-        bptree.insert(TEST_INDEX_FILE, TEST_INSERT_FILE0);
+        BPlusTreeCLI.create(TEST_INDEX_FILE, 3);
+        BPlusTreeCLI.insert(TEST_INDEX_FILE, TEST_INSERT_FILE0);
 
         BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
 
@@ -144,9 +154,9 @@ public class bptreeTest {
 
     @Test
     public void testDeletion() {
-        bptree.create(TEST_INDEX_FILE, 3);
-        bptree.insert(TEST_INDEX_FILE, TEST_INSERT_FILE);
-        bptree.delete(TEST_INDEX_FILE, TEST_DELETE_FILE);
+        BPlusTreeCLI.create(TEST_INDEX_FILE, 3);
+        BPlusTreeCLI.insert(TEST_INDEX_FILE, TEST_INSERT_FILE);
+        BPlusTreeCLI.delete(TEST_INDEX_FILE, TEST_DELETE_FILE);
 
         BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
 
@@ -163,9 +173,9 @@ public class bptreeTest {
 
     @Test
     public void testDeletion2() {
-        bptree.create(TEST_INDEX_FILE, 3);
-        bptree.insert(TEST_INDEX_FILE, TEST_INSERT_FILE0);
-        bptree.delete(TEST_INDEX_FILE, TEST_DELETE_FILE0);
+        BPlusTreeCLI.create(TEST_INDEX_FILE, 3);
+        BPlusTreeCLI.insert(TEST_INDEX_FILE, TEST_INSERT_FILE0);
+        BPlusTreeCLI.delete(TEST_INDEX_FILE, TEST_DELETE_FILE0);
 
         BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
 
@@ -185,8 +195,8 @@ public class bptreeTest {
 
     @Test
     public void testSearch() {
-        bptree.create(TEST_INDEX_FILE, 8);
-        bptree.insert(TEST_INDEX_FILE, TEST_INSERT_FILE);
+        BPlusTreeCLI.create(TEST_INDEX_FILE, 8);
+        BPlusTreeCLI.insert(TEST_INDEX_FILE, TEST_INSERT_FILE);
 
         BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
 
@@ -196,21 +206,35 @@ public class bptreeTest {
 
     @Test
     public void testSearch2() {
-        bptree.create(TEST_INDEX_FILE, 8);
-        bptree.insert(TEST_INDEX_FILE, TEST_INSERT_FILE0);
+        BPlusTreeCLI.create(TEST_INDEX_FILE, 8);
+        BPlusTreeCLI.insert(TEST_INDEX_FILE, TEST_INSERT_FILE0);
 
-        //BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
 
-        bptree.search(TEST_INDEX_FILE, 68);
+        BPlusTreeCLI.search(TEST_INDEX_FILE, 68);
 
         BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
         assertEquals(97321, tree.search(68).value);
     }
 
     @Test
+    public void testRangedSearch() {
+        BPlusTreeCLI.create(TEST_INDEX_FILE, 4);
+        BPlusTreeCLI.insert(TEST_INDEX_FILE, TEST_INSERT_FILE0);
+
+        BPlusTreeCLI.rangedSearch(TEST_INDEX_FILE, 26, 68);
+
+        BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
+
+        ArrayList<Pair<Integer, Integer>> ret = tree.rangedSearch(26, 68);
+        assertEquals(26, (long) ret.get(0).left);
+        assertEquals(37, (long) ret.get(1).left);
+        assertEquals(68, (long) ret.get(2).left);
+    }
+
+    @Test
     public void testSorted() {
-        bptree.create(TEST_INDEX_FILE, 8);
-        bptree.insert(TEST_INDEX_FILE, TEST_INSERT_FILE);
+        BPlusTreeCLI.create(TEST_INDEX_FILE, 8);
+        BPlusTreeCLI.insert(TEST_INDEX_FILE, TEST_INSERT_FILE);
 
         BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
 

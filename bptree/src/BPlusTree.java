@@ -2,8 +2,11 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * Created by Prev on 2017. 9. 4..
+ * B+ Tree of Integer keys and Integer values
+ *
+ * @author Prev (0soo.2@prev.kr)
  */
+
 public class BPlusTree implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -15,9 +18,14 @@ public class BPlusTree implements Serializable {
         this.rootNode = new LeafNode(null);
     }
 
+    /**
+     * "b" of B+ Tree
+     * @return int
+     */
     public int getMaxChildNodes() {
         return maxChildNodes;
     }
+
 
     /**
      * Traversal nodes for debug
@@ -238,7 +246,7 @@ public class BPlusTree implements Serializable {
 
     /**
      * Get list of (key, value) pairs
-     * @return
+     * @return ArrayList<Pair<Integer, Integer>>
      */
     public ArrayList<Pair<Integer, Integer>> getList() {
         ArrayList<Pair<Integer, Integer>> ret = new ArrayList<>();
@@ -278,9 +286,9 @@ public class BPlusTree implements Serializable {
         if (leafNode == null)
             return SearchResult.miss(leafNode, history);
 
-        for (Pair<Integer, Integer> p: leafNode.p) {
-            if (p.left == key)
-                return SearchResult.hit(p.right, leafNode, history);
+        for (Pair<Integer, Integer> pair: leafNode.p) {
+            if (pair.left == key)
+                return SearchResult.hit(pair.right, leafNode, history);
         }
 
         return SearchResult.miss(leafNode, history);
@@ -304,6 +312,47 @@ public class BPlusTree implements Serializable {
             return _searchProc(key, ((NonLeafNode) node).r, history);
         }
     }
+
+
+    /**
+     * Search from B+Tree by range
+     * @param startKey
+     * @param endKey
+     * @return ArrayList<Integer>
+     */
+    public ArrayList<Pair<Integer, Integer>> rangedSearch(int startKey, int endKey) {
+        ArrayList<Pair<Integer, Integer>> ret = new ArrayList<>();
+
+        for (LeafNode node: _rangedSearchProc(startKey, endKey, this.rootNode)) {
+            for (Pair<Integer, Integer> pair: node.p) {
+                if (pair.left >= startKey && pair.left <= endKey)
+                    ret.add(pair);
+            }
+        }
+
+        return ret;
+    }
+
+    private ArrayList<LeafNode> _rangedSearchProc(int startKey, int endKey, Node node) {
+        ArrayList<LeafNode> ret = new ArrayList<>();
+
+        if (node == null)
+            return ret;
+
+        if (node instanceof LeafNode)
+            ret.add((LeafNode) node);
+
+        else {
+            for (Pair<Integer, Node> p: ((NonLeafNode) node).p)
+                if (startKey < p.left)
+                    ret.addAll(_rangedSearchProc(startKey, endKey, p.right));
+
+            if (node.getKeys()[node.getKeyCounts()-1] <= endKey)
+                ret.addAll(_rangedSearchProc(startKey, endKey, ((NonLeafNode) node).r));
+        }
+
+        return ret;
+    }
 }
 
 
@@ -313,6 +362,15 @@ class SearchResult {
     LeafNode leafNode;
     ArrayList<Node> history;
 
+    /**
+     * SearchResult Constructor
+     * @param hit: True if value is found
+      *            False if not found
+     * @param value: Value of search result
+     *               If not found, -1
+     * @param leafNode: LeafNode including value
+     * @param history: Hierarchical history of searching
+     */
     SearchResult(Boolean hit, int value, LeafNode leafNode, ArrayList<Node> history) {
         this.hit = hit;
         this.value = value;

@@ -3,7 +3,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 /**
- * Created by Prev on 2017. 9. 6..
+ * Node ADT of B+ Tree
+ *
+ * @author Prev (0soo.2@prev.kr)
  */
 
 
@@ -12,22 +14,34 @@ abstract class Node implements Serializable {
 
     private NonLeafNode parent;
 
+    /**
+     * Constructor
+     * @param parent: parent node (if root, use null)
+     */
     Node(NonLeafNode parent) {
         this.parent = parent;
     }
 
+    /**
+     * Get parent node
+     * @return
+     */
     public NonLeafNode getParent() {
         return this.parent;
     }
+
+    /**
+     * Set parent node
+     * @param node
+     */
     public void setParent(NonLeafNode node) {
         this.parent = node;
     }
 
-    abstract public int[] getKeys();
-    abstract public int getKeyCounts();
-
-    //abstract public ArrayList<Pair<Integer, Object>> p();
-
+    /**
+     * Get siblings of current node (include itself)
+     * @return ArrayList<Node>
+     */
     public ArrayList<Node> getSiblings() {
         if (this.parent == null)
             return new ArrayList<>();
@@ -35,6 +49,12 @@ abstract class Node implements Serializable {
             return this.parent.getChildren();
     }
 
+    /**
+     * Get neighbors
+     * @return Pair<Node, Node>
+     *      pair.left is left-neighbor
+     *      pair.right is right-neighbor
+     */
     public Pair<Node, Node> getNeighbors() {
         Pair<Node, Node> ret = new Pair<>(null, null);
         ArrayList<Node> siblings = this.getSiblings();
@@ -48,6 +68,18 @@ abstract class Node implements Serializable {
 
         return ret;
     }
+
+    /**
+     * Get keys of node
+     * @return
+     */
+    abstract public int[] getKeys();
+
+    /**
+     * Get length of keys
+     * @return
+     */
+    abstract public int getKeyCounts();
 }
 
 
@@ -61,6 +93,7 @@ class NonLeafNode extends Node {
         this.p = new ArrayList<>();
     }
 
+    @Override
     public int[] getKeys() {
         int[] ret = new int[this.p.size()];
         for (int i = 0; i < ret.length; i++) {
@@ -70,9 +103,11 @@ class NonLeafNode extends Node {
         return ret;
     }
 
+    @Override
     public int getKeyCounts() {
         return p.size();
     }
+
 
     public ArrayList<Node> getChildren() {
         ArrayList<Node> ret = new ArrayList<>();
@@ -116,6 +151,7 @@ class LeafNode extends Node {
         this.p = new ArrayList<>();
     }
 
+    @Override
     public int[] getKeys() {
         int[] ret = new int[this.p.size()];
         for (int i = 0; i < ret.length; i++) {
@@ -125,6 +161,7 @@ class LeafNode extends Node {
         return ret;
     }
 
+    @Override
     public int getKeyCounts() {
         return p.size();
     }
