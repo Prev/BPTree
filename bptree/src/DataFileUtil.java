@@ -2,10 +2,18 @@ import java.io.*;
 import java.util.ArrayList;
 
 /**
- * Created by Prev on 2017. 9. 5..
+ * Data Util for B+ tree CLI
+ *
+ * @author Prev (0soo.2@prev.kr)
  */
+
 public class DataFileUtil {
 
+    /**
+     * Load CSV from filename which only contains integers
+     * @param fileName
+     * @return 2d int array
+     */
     static int[][] loadIntCSV(String fileName) {
         ArrayList<String> lines = new ArrayList<String>();
 
@@ -38,6 +46,11 @@ public class DataFileUtil {
         return ret;
     }
 
+    /**
+     * Get fileName and BPlusTree instance and save as file (serialization)
+     * @param fileName
+     * @param tree
+     */
     static void saveTree(String fileName, BPlusTree tree) {
         try {
             FileOutputStream fos = new FileOutputStream(fileName);
@@ -50,6 +63,11 @@ public class DataFileUtil {
         }
     }
 
+    /**
+     * Load saved tree in file and return BPlusTree instance (de-serialization)
+     * @param fileName
+     * @return BPlusTree instance
+     */
     static BPlusTree loadTree(String fileName) {
         BPlusTree result = null;
 

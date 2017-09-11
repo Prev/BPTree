@@ -2,7 +2,7 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * B+ Tree of Integer keys and Integer values
+ * B+ tree of integer keys and integer values
  *
  * @author Prev (0soo.2@prev.kr)
  */
@@ -28,48 +28,6 @@ public class BPlusTree implements Serializable {
 
 
     /**
-     * Traversal nodes for debug
-     */
-    public void traversal() {
-        Queue<Pair<Node, Integer>> que = new LinkedList<>();
-        que.offer(new Pair<>(this.rootNode, 0));
-
-        while (!que.isEmpty()) {
-            Pair<Node, Integer> polled = que.poll();
-            Node node = polled.left;
-            Integer depth = polled.right;
-
-            for (int i = 0; i < depth; i++)
-                System.out.print("  ");
-
-            if (node instanceof NonLeafNode) {
-                System.out.printf("N#%d \t", node.hashCode() % 1000);
-
-                for (Pair<Integer, Node> p : ((NonLeafNode) node).p) {
-                    System.out.printf("(%d, #%d) ", p.left, p.right.hashCode() % 1000);
-                    que.offer(new Pair<>(p.right, depth+1));
-                }
-                if (((NonLeafNode) node).r != null) {
-                    System.out.printf(" ($, #%d)", ((NonLeafNode) node).r.hashCode() % 1000);
-                    que.offer(new Pair<>(((NonLeafNode) node).r, depth+1));
-                }
-
-            } else if (node instanceof LeafNode) {
-                System.out.printf("L#%d \t", node.hashCode() % 1000);
-
-                for (Pair<Integer, Integer> p : ((LeafNode) node).p)
-                    System.out.printf("(%d, %d) ", p.left, p.right);
-            }
-
-//            if (node.getParent() != null)
-//                System.out.printf("  [[#%d]]", node.getParent().hashCode() % 1000);
-
-            System.out.println("");
-        }
-    }
-
-
-    /**
      * Insert (key, value) pair to tree
      * @param key
      * @param value
@@ -84,9 +42,6 @@ public class BPlusTree implements Serializable {
             return false;
 
         _insertValue(key, value, node);
-
-//        this.traversal();
-//        System.out.println("------------------------------");
         return true;
     }
 
@@ -106,7 +61,6 @@ public class BPlusTree implements Serializable {
 
             ((NonLeafNode) this.rootNode).r = node;
         }
-
 
         if (node instanceof LeafNode) {
             newNode = new LeafNode(node.getParent());
@@ -136,7 +90,6 @@ public class BPlusTree implements Serializable {
             for (Node child: ((NonLeafNode) newNode).getChildren())
                 child.setParent((NonLeafNode) newNode);
 
-            //((NonLeafNode) newNode).r = ((NonLeafNode) newNode).p.get( newNode.getKeyCounts() - 1 ).right;
         }
 
         _insertNode(newNode, node, node.getParent());
@@ -147,8 +100,6 @@ public class BPlusTree implements Serializable {
     }
 
     private void _insertNode(Node leftNode, Node rightNode, NonLeafNode parentNode) {
-        //int key = rightNode.getKeys()[0];
-
         // Get left-most Node from root
         Node leftMostOfRightNode = rightNode;
         while (leftMostOfRightNode instanceof NonLeafNode)
@@ -157,7 +108,6 @@ public class BPlusTree implements Serializable {
         int key = leftMostOfRightNode.getKeys()[0];
         parentNode.insert(key, leftNode);
     }
-
 
     /**
      * Remove data by key
@@ -175,8 +125,6 @@ public class BPlusTree implements Serializable {
 
         _removeValue(key, node);
 
-//        this.traversal();
-//        System.out.println("------------------------------------------");
         return true;
     }
 
@@ -201,19 +149,30 @@ public class BPlusTree implements Serializable {
 
         else {
             // case 2-1: Redistribute
-            Node targetNeighbor = (neighbors.right != null) ? neighbors.right : neighbors.left;
+            if (neighbors.right != null) {
+                if (node instanceof LeafNode)
+                    ((LeafNode) node).insert(
+                            ((LeafNode) neighbors.right).p.remove(0)
+                    );
+                else
+                    ((NonLeafNode) node).insert(
+                            ((NonLeafNode) neighbors.right).p.remove(0)
+                    );
 
-            if (targetNeighbor == null) return;
+                _updateKey(node.getParent(), node, neighbors.right);
 
-            if (node instanceof LeafNode)
-                ((LeafNode) node).insert(
-                        ((LeafNode) targetNeighbor).p.remove(targetNeighbor.getKeyCounts()-1)
-                );
-            else
-                ((NonLeafNode) node).insert(
-                        ((NonLeafNode) targetNeighbor).p.remove(targetNeighbor.getKeyCounts()-1)
-                );
+            }else if (neighbors.left != null) {
+                if (node instanceof LeafNode)
+                    ((LeafNode) node).insert(
+                            ((LeafNode) neighbors.left).p.remove(neighbors.left.getKeyCounts()-1)
+                    );
+                else
+                    ((NonLeafNode) node).insert(
+                            ((NonLeafNode) neighbors.left).p.remove(neighbors.left.getKeyCounts()-1)
+                    );
 
+                _updateKey(node.getParent(), neighbors.left, node);
+            }
         }
     }
 
@@ -229,6 +188,13 @@ public class BPlusTree implements Serializable {
         for (int i = 0; i < parentNode.p.size(); i++) {
             if (parentNode.p.get(i).right == leftNode) {
                 parentNode.p.remove(i);
+
+                if (leftNode instanceof LeafNode) {
+                    LeafNode ll = ((LeafNode) leftNode).l;
+                    if (ll != null)
+                        ll.r = (LeafNode) rightNode;
+                    ((LeafNode) rightNode).l = ll;
+                }
                 break;
             }
         }
@@ -242,6 +208,23 @@ public class BPlusTree implements Serializable {
         if (parentNode.getKeyCounts() < this.maxChildNodes / 2)
             _balancingNode(parentNode);
     }
+
+    private void _updateKey(NonLeafNode parentNode, Node leftNode, Node rightNode) {
+        // Get left-most Node from root
+        Node leftMostOfRightNode = rightNode;
+        while (leftMostOfRightNode instanceof NonLeafNode)
+            leftMostOfRightNode = ((NonLeafNode) leftMostOfRightNode).p.get(0).right;
+
+        int key = leftMostOfRightNode.getKeys()[0];
+
+        for (Pair<Integer, Node> pair: parentNode.p)
+            if (pair.right == leftNode) {
+                pair.left = key;
+                break;
+            }
+
+    }
+
 
 
     /**
@@ -352,6 +335,45 @@ public class BPlusTree implements Serializable {
         }
 
         return ret;
+    }
+
+
+    /**
+     * Traversal nodes for debug
+     */
+    public void traversal() {
+        Queue<Pair<Node, Integer>> que = new LinkedList<>();
+        que.offer(new Pair<>(this.rootNode, 0));
+
+        while (!que.isEmpty()) {
+            Pair<Node, Integer> polled = que.poll();
+            Node node = polled.left;
+            Integer depth = polled.right;
+
+            for (int i = 0; i < depth; i++)
+                System.out.print("  ");
+
+            if (node instanceof NonLeafNode) {
+                System.out.printf("N#%d \t", node.hashCode() % 1000);
+
+                for (Pair<Integer, Node> p : ((NonLeafNode) node).p) {
+                    System.out.printf("(%d, #%d) ", p.left, p.right.hashCode() % 1000);
+                    que.offer(new Pair<>(p.right, depth+1));
+                }
+                if (((NonLeafNode) node).r != null) {
+                    System.out.printf(" ($, #%d)", ((NonLeafNode) node).r.hashCode() % 1000);
+                    que.offer(new Pair<>(((NonLeafNode) node).r, depth+1));
+                }
+
+            } else if (node instanceof LeafNode) {
+                System.out.printf("L#%d \t", node.hashCode() % 1000);
+
+                for (Pair<Integer, Integer> p : ((LeafNode) node).p)
+                    System.out.printf("(%d, %d) ", p.left, p.right);
+            }
+
+            System.out.println("");
+        }
     }
 }
 

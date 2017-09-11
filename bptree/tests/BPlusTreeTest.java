@@ -7,7 +7,7 @@ import java.util.Queue;
 import static org.junit.Assert.*;
 
 /**
- * B+ Tree Tests
+ * B+ tree Tests
  *
  * @author Prev (0soo.2@prev.kr)
  */
@@ -23,7 +23,7 @@ public class BPlusTreeTest {
 
 
     /**
-     * Check tree is satisfying the properties of B+ Tree
+     * Check that tree is satisfying the properties of B+ Tree
      * @param tree
      */
     private void guaranteeBPlusTree(BPlusTree tree) {
@@ -60,6 +60,11 @@ public class BPlusTreeTest {
                     que.offer(p.right);
             }
         }
+
+        // Guarantee sorted
+        ArrayList<Pair<Integer, Integer>> lists = tree.getList();
+        for (int i = 0; i < lists.size() - 1; i++)
+            assertTrue((long) lists.get(i).left < (long) lists.get(i+1).left);
     }
 
 
@@ -190,6 +195,27 @@ public class BPlusTreeTest {
         assertTrue(!tree.search(37).hit);
 
         guaranteeBPlusTree(tree);
+    }
+
+    @Test
+    public void testDeletion3() {
+        BPlusTreeCLI.create(TEST_INDEX_FILE, 5);
+
+        BPlusTree tree = DataFileUtil.loadTree(TEST_INDEX_FILE);
+        tree.insert(5, 5); tree.insert(1, 1);
+        tree.insert(2, 2); tree.insert(3, 3);
+        tree.insert(6, 6); tree.insert(7, 7);
+        tree.insert(8, 8); tree.insert(4, 4);
+
+        tree.remove(4);
+        tree.remove(3);
+        tree.remove(2);
+
+        tree.traversal();
+
+        guaranteeBPlusTree(tree);
+
+        assertTrue(tree.search(5).hit);
     }
 
 

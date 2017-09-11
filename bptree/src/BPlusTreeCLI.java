@@ -1,5 +1,5 @@
 /**
- * B+ Tree CLi
+ * B+ tree CLI
  *
  * Usage: BPlusTreeCLI
  *    -c <index_file> <b>
@@ -11,7 +11,6 @@
  * @author Prev (0soo.2@prev.kr)
  */
 
-
 public class BPlusTreeCLI {
 
     static final String PROGRAM_NAME = "BPlusTreeCLI";
@@ -22,13 +21,9 @@ public class BPlusTreeCLI {
             System.exit(-1);
         }
 
-        BPlusTree tree;
-
         switch (args[0]) {
             case "-c" :
-                // -c <index_file> <b>
                 CLIUtil.guaranteeArgs(args, 3);
-
                 create(
                         args[1],
                         Integer.parseInt(args[2])
@@ -36,20 +31,16 @@ public class BPlusTreeCLI {
                 break;
 
             case "-i" :
-                // -i <index_file> <data_file>
                 CLIUtil.guaranteeArgs(args, 3);
-
                 insert(args[1], args[2]);
                 break;
 
             case "-d" :
-                // -d <index_file> <data_file>
                 CLIUtil.guaranteeArgs(args, 3);
                 delete(args[1], args[2]);
                 break;
 
             case "-s" :
-                // -s <index_file> <key>
                 CLIUtil.guaranteeArgs(args, 3);
                 search(
                         args[1],
@@ -58,7 +49,6 @@ public class BPlusTreeCLI {
                 break;
 
             case "-r" :
-                // -r <index_file> <start_key> <end_key>
                 CLIUtil.guaranteeArgs(args, 4);
                 rangedSearch(
                         args[1],
@@ -74,26 +64,22 @@ public class BPlusTreeCLI {
     }
 
     /**
-     * Create B+ Tree
+     * Create B+ tree
      * @param indexFileName
      * @param b
      */
     static void create(String indexFileName, int b) {
-        //System.out.println("create");
-
         BPlusTree tree = new BPlusTree(b);
         DataFileUtil.saveTree(indexFileName, tree);
     }
 
 
     /**
-     * Insert Dataset to B+ Tree
+     * Insert Dataset to B+ tree
      * @param indexFileName
      * @param dataFileName
      */
     static void insert(String indexFileName, String dataFileName) {
-        //System.out.println("insert");
-
         BPlusTree tree = DataFileUtil.loadTree(indexFileName);
         int[][] data = DataFileUtil.loadIntCSV(dataFileName);
         int insertedRows = 0;
@@ -108,7 +94,7 @@ public class BPlusTreeCLI {
     }
 
     /**
-     * Delete Dataset from B+ Tree
+     * Delete Dataset from B+ tree
      * @param indexFileName
      * @param dataFileName
      */
@@ -128,7 +114,7 @@ public class BPlusTreeCLI {
     }
 
     /**
-     * Search from B+ Tree
+     * Search from B+ tree
      * @param indexFileName
      * @param key
      */
@@ -165,7 +151,7 @@ public class BPlusTreeCLI {
     }
 
     /**
-     * Search by range in B+ Tree
+     * Search by range in B+ tree
      * @param indexFileName
      * @param startKey
      * @param endKey
@@ -181,7 +167,6 @@ public class BPlusTreeCLI {
 
 
 class CLIUtil {
-
     static String getHelpMessage() {
         return "Usage: " + BPlusTreeCLI.PROGRAM_NAME + "\n\t" +
                 "-c <index_file> <b>\n\t" +
