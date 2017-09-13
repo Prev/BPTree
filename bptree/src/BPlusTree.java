@@ -379,7 +379,7 @@ public class BPlusTree implements Serializable {
 
 
 class SearchResult {
-    Boolean hit;
+    boolean hit;
     int value;
     LeafNode leafNode;
     ArrayList<Node> history;
@@ -393,7 +393,7 @@ class SearchResult {
      * @param leafNode: LeafNode including value
      * @param history: Hierarchical history of searching
      */
-    SearchResult(Boolean hit, int value, LeafNode leafNode, ArrayList<Node> history) {
+    SearchResult(boolean hit, int value, LeafNode leafNode, ArrayList<Node> history) {
         this.hit = hit;
         this.value = value;
         this.leafNode = leafNode;
